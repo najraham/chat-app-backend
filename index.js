@@ -4,7 +4,7 @@ const app = express();
 
 // CORS 
 const cors = require('./middlewares/cors');
-app.use(cors)
+app.use(cors);
 
 // database
 const url = 'mongodb://localhost/ChatApp';
@@ -23,10 +23,13 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
 // API
+const jwt = require('./middlewares/jwt');
 // Auth
 app.use ('/api', require('./routes/auth'));
 // Messages
-app.use ('/api', require('./routes/message'));
+app.use ('/api', jwt, require('./routes/message'));
+// USers
+app.use('/api', jwt, require('./routes/user'));
 
 const server = app.listen(5000, () => console.log('Server started on port 5000'));
 
@@ -37,4 +40,4 @@ const io = require('socket.io')(server, {
   }
 });
 
-require('./socket')(io);
+require('./middlewares/socket')(io);

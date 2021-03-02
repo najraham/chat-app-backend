@@ -1,14 +1,5 @@
 const User = require('../models/User');
-
-// <GET> get all users
-exports.users = async (req,res) => {
-    try{
-        const users = await User.find();
-        res.json(users);
-    } catch(error) {
-        res.send('Error : ' + error);
-    }
-}
+const jwt = require('jsonwebtoken');
 
 // <POST> login
 exports.login = async (req, res) => {
@@ -16,16 +7,24 @@ exports.login = async (req, res) => {
         email: req.body.email,
         password: req.body.password
     }
-    try{
+    try {
         if(!loginDetail.email || !loginDetail.password){
             return res.status(400).json({ msg: "Please include both email and password." });
         }
+        
         else {
             const user = await User.findOne({email: loginDetail.email});
             
             if(user) {
                 if(user.password == loginDetail.password) {
-                    res.json(user)
+                    jwt.sign({user}, "chatapp", (err, token) => {
+                        if(err) {
+                            res.send({ error: err });
+                        }
+                        else{
+                            res.status(200).json({ msg: " Login successful", token: token, user: user})
+                        }
+                    })
                 }
                 else{
                     res.status(400).json({ msg: "Incorrect credentials." });
@@ -44,7 +43,7 @@ exports.register = async (req,res) =>{
         last_name: req.body.last_name,
         email: req.body.email,
         password: req.body.password
-    })
+    });
     try {
         const user = await newUser.save();
         res.json(user);
